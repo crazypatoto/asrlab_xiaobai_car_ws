@@ -1,0 +1,9 @@
+string configuration_directory
+string configuration_basename
+bool use_initial_pose
+geometry_msgs/Pose initial_pose
+int32 relative_to_trajectory_id
+---
+move_robot/cartographer_finish status
+int32 trajectory_id
+
