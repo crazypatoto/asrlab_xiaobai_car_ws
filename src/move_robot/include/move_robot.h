@@ -522,6 +522,34 @@ protected:
 float Move_Robot::v_buf = 0.04;
 Move_Robot::Move_Robot(char *dev_name, int Baudrate)
 {
+    //ROS Subscriber & Publisher
+    odometry_Publisher_ = node_.advertise<geometry_msgs::PoseStamped>("odom_speed", 1);
+		odom_Publisher_ = node_.advertise<nav_msgs::Odometry>("odom", 1);
+		amcl_odom_Publisher_ = node_.advertise<nav_msgs::Odometry>("odom_amcl", 1);
+    Error_Publisher_= node_.advertise<std_msgs::Int8>("Error",10);
+    v_Publisher_ = node_.advertise<std_msgs::Float32>("v", 5);
+		navigation_Publisher_ = node_.advertise<std_msgs::Int8>("navigation",10);
+    //marker_Publisher_ = node_.advertise<visualization_msgs::Marker>("OBS_Marker", 1);
+    STATE_Publisher_ = node_.advertise<move_robot::state>("STATE", 10);
+    ReMissionState_Publisher_= node_.advertise<std_msgs::Int8>("ReMissionState", 10);
+    marke_Publisher_ = node_.advertise<visualization_msgs::Marker>("visualization_marker", 10);
+		Command_Publisher_ = node_.advertise<move_robot::change_map>("Command",10);//new add
+
+
+    //JoysickSubscriber_ = node_.subscribe("joystick", 5, &Move_Robot::joystickCallback, this);
+    slamoutSubscriber_ = node_.subscribe("slam_out_pose", 5, &Move_Robot::slamoutCallback, this);
+		cartoSubscriber_ = node_.subscribe("pose_nav", 5, &Move_Robot::cartoCallback, this);
+		poseSubscriber_ = node_.subscribe("laser_odom", 5, &Move_Robot::poseCallback, this);//new add
+    ukfSubscriber_ = node_.subscribe("fusionUKF", 5, &Move_Robot::UKFCallback, this);
+    //laserSubscriber_ = node_.subscribe("scan", 5, &Move_Robot::laserCallback, this);
+    IdTypeSubscriber_=node_.subscribe("id", 5, &Move_Robot::IdTypeCallback, this);
+    TrafficGOSubscriber_=node_.subscribe("GO", 5, &Move_Robot::TrafficGOCallback, this);
+    //Clear_ObsModeSubscriber_=node_.subscribe("Clear_ObsMode", 5, &Move_Robot::ClearCallback, this);
+    MissMsgSubscriber_ = node_.subscribe("Missing", 5, &Move_Robot::MissMsgCallback, this);
+    TriggerSubscriber_=node_.subscribe("Trigger", 5, &Move_Robot::TriggerCallback_, this);
+		floorSubscriber_=node_.subscribe("floor", 10, &Move_Robot::floorCallback_, this);
+		pathSubscriber_=node_.subscribe("plan", 10, &Move_Robot::pathplanCallback_, this);
+
     // LoadTitlePath();
     // CarParameterPATH = TitlePath + CarParameterPATH_Local;
 		back_trajectory = false;
@@ -656,34 +684,7 @@ Move_Robot::Move_Robot(char *dev_name, int Baudrate)
 		Rev_y = 0.0;
 		Rev_th = 0.0;
 
-    //ROS Subscriber & Publisher
-    odometry_Publisher_ = node_.advertise<geometry_msgs::PoseStamped>("odom_speed", 1);
-		odom_Publisher_ = node_.advertise<nav_msgs::Odometry>("odom", 1);
-		amcl_odom_Publisher_ = node_.advertise<nav_msgs::Odometry>("odom_amcl", 1);
-    Error_Publisher_= node_.advertise<std_msgs::Int8>("Error",10);
-    v_Publisher_ = node_.advertise<std_msgs::Float32>("v", 5);
-		navigation_Publisher_ = node_.advertise<std_msgs::Int8>("navigation",10);
-    //marker_Publisher_ = node_.advertise<visualization_msgs::Marker>("OBS_Marker", 1);
-    STATE_Publisher_ = node_.advertise<move_robot::state>("STATE", 10);
-    ReMissionState_Publisher_= node_.advertise<std_msgs::Int8>("ReMissionState", 10);
-    marke_Publisher_ = node_.advertise<visualization_msgs::Marker>("visualization_marker", 10);
-		Command_Publisher_ = node_.advertise<move_robot::change_map>("Command",10);//new add
-
-
-    //JoysickSubscriber_ = node_.subscribe("joystick", 5, &Move_Robot::joystickCallback, this);
-    slamoutSubscriber_ = node_.subscribe("slam_out_pose", 5, &Move_Robot::slamoutCallback, this);
-		cartoSubscriber_ = node_.subscribe("pose_nav", 5, &Move_Robot::cartoCallback, this);
-		poseSubscriber_ = node_.subscribe("laser_odom", 5, &Move_Robot::poseCallback, this);//new add
-    ukfSubscriber_ = node_.subscribe("fusionUKF", 5, &Move_Robot::UKFCallback, this);
-    //laserSubscriber_ = node_.subscribe("scan", 5, &Move_Robot::laserCallback, this);
-    IdTypeSubscriber_=node_.subscribe("id", 5, &Move_Robot::IdTypeCallback, this);
-    TrafficGOSubscriber_=node_.subscribe("GO", 5, &Move_Robot::TrafficGOCallback, this);
-    //Clear_ObsModeSubscriber_=node_.subscribe("Clear_ObsMode", 5, &Move_Robot::ClearCallback, this);
-    MissMsgSubscriber_ = node_.subscribe("Missing", 5, &Move_Robot::MissMsgCallback, this);
-    TriggerSubscriber_=node_.subscribe("Trigger", 5, &Move_Robot::TriggerCallback_, this);
-		floorSubscriber_=node_.subscribe("floor", 10, &Move_Robot::floorCallback_, this);
-		pathSubscriber_=node_.subscribe("plan", 10, &Move_Robot::pathplanCallback_, this);
-
+    
 
 
     //Time sampling time
